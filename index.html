@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Генератор идей для постов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Onest:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0c0e14;
+      --card: rgba(22, 26, 38, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e8eaf0;
+      --muted: #8b93a8;
+      --accent: #ff6b4a;
+      --accent-2: #ffb347;
+      --glow: rgba(255, 107, 74, 0.35);
+    }
+
+    body {
+      font-family: "Onest", sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      color: var(--text);
+    }
+
+    /* Фоновые пятна */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      animation: float 12s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 420px;
+      height: 420px;
+      background: #ff6b4a;
+      top: -10%;
+      left: -8%;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 360px;
+      height: 360px;
+      background: #7c5cff;
+      bottom: -12%;
+      right: -6%;
+      animation-delay: -4s;
+    }
+
+    .orb-3 {
+      width: 280px;
+      height: 280px;
+      background: #ffb347;
+      top: 50%;
+      left: 55%;
+      animation-delay: -8s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -25px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* Сетка на фоне */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      background: var(--card);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px 40px;
+      max-width: 560px;
+      width: 100%;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 32px 80px rgba(0, 0, 0, 0.5);
+      animation: cardIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(32px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(255, 107, 74, 0.12);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+      border-radius: 100px;
+      padding: 6px 14px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.6s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.75); }
+    }
+
+    h1 {
+      font-family: "Unbounded", sans-serif;
+      font-size: clamp(1.4rem, 4vw, 1.85rem);
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 36px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeUp 0.6s 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.35s,
+        box-shadow 0.35s,
+        background 0.35s;
+      animation: itemIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    li:nth-child(1) { animation-delay: 0.4s; }
+    li:nth-child(2) { animation-delay: 0.52s; }
+    li:nth-child(3) { animation-delay: 0.64s; }
+
+    @keyframes itemIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Блик при наведении */
+    li::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 60%
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    li:hover::before {
+      transform: translateX(100%);
+    }
+
+    li:hover {
+      transform: translateY(-3px) scale(1.01);
+      border-color: rgba(255, 107, 74, 0.35);
+      background: rgba(255, 107, 74, 0.07);
+      box-shadow: 0 8px 32px var(--glow);
+    }
+
+    .icon {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      background: rgba(255, 107, 74, 0.15);
+      border: 1px solid rgba(255, 107, 74, 0.2);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    li:hover .icon {
+      transform: rotate(-8deg) scale(1.1);
+    }
+
+    li:nth-child(2) .icon {
+      background: rgba(124, 92, 255, 0.15);
+      border-color: rgba(124, 92, 255, 0.25);
+    }
+
+    li:nth-child(2):hover {
+      border-color: rgba(124, 92, 255, 0.35);
+      background: rgba(124, 92, 255, 0.07);
+      box-shadow: 0 8px 32px rgba(124, 92, 255, 0.25);
+    }
+
+    li:nth-child(3) .icon {
+      background: rgba(255, 179, 71, 0.15);
+      border-color: rgba(255, 179, 71, 0.25);
+    }
+
+    li:nth-child(3):hover {
+      border-color: rgba(255, 179, 71, 0.35);
+      background: rgba(255, 179, 71, 0.07);
+      box-shadow: 0 8px 32px rgba(255, 179, 71, 0.2);
+    }
+
+    .label {
+      flex: 1;
+    }
+
+    .arrow {
+      color: var(--muted);
+      font-size: 1.1rem;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.3s, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    li:hover .arrow,
+    li.active .arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    li.active {
+      border-color: rgba(255, 107, 74, 0.45);
+      background: rgba(255, 107, 74, 0.1);
+    }
+
+    li:nth-child(2).active {
+      border-color: rgba(124, 92, 255, 0.45);
+      background: rgba(124, 92, 255, 0.1);
+    }
+
+    li:nth-child(3).active {
+      border-color: rgba(255, 179, 71, 0.45);
+      background: rgba(255, 179, 71, 0.1);
+    }
+
+    li:active {
+      transform: scale(0.98);
+    }
+
+    .results {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .results.visible {
+      display: block;
+      animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .results-title {
+      font-family: "Unbounded", sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .btn-regen {
+      flex-shrink: 0;
+      font-family: "Onest", sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: rgba(255, 107, 74, 0.12);
+      border: 1px solid rgba(255, 107, 74, 0.3);
+      border-radius: 100px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: background 0.25s, transform 0.25s;
+    }
+
+    .btn-regen:hover {
+      background: rgba(255, 107, 74, 0.22);
+      transform: scale(1.03);
+    }
+
+    .btn-regen:active {
+      transform: scale(0.97);
+    }
+
+    .results-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .results-list li {
+      padding: 14px 16px;
+      font-size: 0.92rem;
+      font-weight: 400;
+      line-height: 1.45;
+      cursor: default;
+      animation: resultIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .results-list li::before {
+      display: none;
+    }
+
+    .results-list li:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .results-list li .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-right: 10px;
+      background: rgba(255, 107, 74, 0.2);
+      color: var(--accent);
+      vertical-align: middle;
+    }
+
+    .results-list.stories li .num {
+      background: rgba(124, 92, 255, 0.2);
+      color: #a78bff;
+    }
+
+    .results-list.plan li .num {
+      background: rgba(255, 179, 71, 0.2);
+      color: var(--accent-2);
+    }
+
+    .results-list.plan li {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .results-list.plan .day {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent-2);
+    }
+
+    @keyframes resultIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .loading-dots span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: dotBounce 1.2s ease-in-out infinite;
+    }
+
+    .loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes dotBounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      animation: fadeUp 0.6s 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .footer span {
+      display: inline-block;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="bg-grid"></div>
+
+  <div class="container">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Контент-инструмент
+    </div>
+
+    <h1>Генератор идей для постов</h1>
+
+    <ul class="menu">
+      <li data-type="posts">
+        <span class="icon">✦</span>
+        <span class="label">5 идей постов для экспертов</span>
+        <span class="arrow">→</span>
+      </li>
+      <li data-type="stories">
+        <span class="icon">◎</span>
+        <span class="label">3 идеи сторис на сегодня</span>
+        <span class="arrow">→</span>
+      </li>
+      <li data-type="plan">
+        <span class="icon">▦</span>
+        <span class="label">контент план на неделю</span>
+        <span class="arrow">→</span>
+      </li>
+    </ul>
+
+    <div class="results" id="results">
+      <div class="results-header">
+        <span class="results-title" id="resultsTitle"></span>
+        <button class="btn-regen" id="btnRegen" type="button">↻ Ещё раз</button>
+      </div>
+      <div id="resultsBody"></div>
+    </div>
+
+    <p class="footer"><span id="footerText">Нажмите на раздел, чтобы сгенерировать идеи</span></p>
+  </div>
+
+  <script>
+    const IDEAS = {
+      posts: [
+        "3 ошибки новичков в вашей нише — и как их избежать",
+        "Разбор кейса: что сработало, а что нет",
+        "Миф vs реальность: развенчиваем популярное заблуждение",
+        "Мой рабочий процесс от А до Я за один день",
+        "5 инструментов, без которых я не обхожусь",
+        "Что я понял за год работы с клиентами",
+        "Ответ на частый вопрос подписчиков — подробный гайд",
+        "До и после: трансформация проекта или результата",
+        "Топ-3 книги/курса, которые изменили мой подход",
+        "Чек-лист: как подготовиться к [ваша услуга/продукт]",
+        "История провала и урок, который я из неё вынес",
+        "Сравнение двух популярных подходов в вашей области",
+        "Как я принимаю решения: моя личная система",
+        "FAQ: отвечаю на 5 самых частых вопросов",
+        "Тренды в нише — что актуально прямо сейчас"
+      ],
+      stories: [
+        "Опрос: «Какая тема вам интереснее?» с 3 вариантами",
+        "Закулисье рабочего дня — 3–5 кадров без монтажа",
+        "Быстрый совет за 15 секунд — один конкретный лайфхак",
+        "«День из жизни» — утро, работа, перерыв",
+        "До/после или прогресс за неделю",
+        "Ответ на вопрос из Direct — «спросили — отвечаю»",
+        "Мини-урок: 1 факт, который удивит аудиторию",
+        "Рекомендация: книга, сервис или инструмент недели",
+        "Мем или юмор по теме вашей экспертизы",
+        "Анонс нового поста или продукта с интригой",
+        "Благодарность подписчикам + маленький инсайт",
+        "«3 вещи, которые я делаю каждый день» — карусель в сторис"
+      ],
+      plan: [
+        { day: "Понедельник", idea: "Мотивационный пост: цели на неделю" },
+        { day: "Вторник", idea: "Образовательный контент: мини-урок или лайфхак" },
+        { day: "Среда", idea: "Кейс или история клиента / личный опыт" },
+        { day: "Четверг", idea: "Интерактив: опрос, викторина или вопрос аудитории" },
+        { day: "Пятница", idea: "Подборка: инструменты, книги или полезные ссылки" },
+        { day: "Суббота", idea: "Личное: закулисье, хобби, рефлексия недели" },
+        { day: "Воскресенье", idea: "Итоги недели + анонс планов на следующую" }
+      ]
+    };
+
+    const TITLES = {
+      posts: "5 идей постов для экспертов",
+      stories: "3 идеи сторис на сегодня",
+      plan: "Контент-план на неделю"
+    };
+
+    let currentType = null;
+
+    function pickRandom(arr, count) {
+      const copy = [...arr];
+      const result = [];
+      while (result.length < count && copy.length) {
+        const i = Math.floor(Math.random() * copy.length);
+        result.push(copy.splice(i, 1)[0]);
+      }
+      return result;
+    }
+
+    function renderPosts(ideas) {
+      return `<ul class="results-list">${ideas.map((text, i) =>
+        `<li style="animation-delay:${i * 0.08}s"><span class="num">${i + 1}</span>${text}</li>`
+      ).join("")}</ul>`;
+    }
+
+    function renderStories(ideas) {
+      return `<ul class="results-list stories">${ideas.map((text, i) =>
+        `<li style="animation-delay:${i * 0.1}s"><span class="num">${i + 1}</span>${text}</li>`
+      ).join("")}</ul>`;
+    }
+
+    function renderPlan(days) {
+      const variants = [
+        "Reels с быстрым советом",
+        "Карусель «5 ошибок»",
+        "Прямой эфир с Q&A",
+        "Stories-опрос",
+        "Лонгрид в Telegram",
+        "Короткий пост с цитатой",
+        "Видео «за кадром»",
+        "Пост-разбор тренда",
+        "Коллаборация с экспертом",
+        "Пост с чек-листом в PDF"
+      ];
+      const formats = pickRandom(variants, days.length);
+      return `<ul class="results-list plan">${days.map((d, i) =>
+        `<li style="animation-delay:${i * 0.06}s">
+          <span class="day">${d.day}</span>
+          ${d.idea} · формат: ${formats[i]}
+        </li>`
+      ).join("")}</ul>`;
+    }
+
+    function generate(type) {
+      if (type === "posts") return renderPosts(pickRandom(IDEAS.posts, 5));
+      if (type === "stories") return renderStories(pickRandom(IDEAS.stories, 3));
+      return renderPlan(IDEAS.plan);
+    }
+
+    const menuItems = document.querySelectorAll(".menu li");
+    const results = document.getElementById("results");
+    const resultsTitle = document.getElementById("resultsTitle");
+    const resultsBody = document.getElementById("resultsBody");
+    const btnRegen = document.getElementById("btnRegen");
+    const footerText = document.getElementById("footerText");
+
+    function showLoading() {
+      resultsBody.innerHTML = `
+        <div class="loading">
+          Генерируем идеи
+          <span class="loading-dots"><span></span><span></span><span></span></span>
+        </div>`;
+    }
+
+    function runGenerate(type) {
+      currentType = type;
+      menuItems.forEach(item => item.classList.toggle("active", item.dataset.type === type));
+      results.classList.add("visible");
+      resultsTitle.textContent = TITLES[type];
+      footerText.textContent = "Нажмите «Ещё раз» для новых идей";
+      showLoading();
+
+      setTimeout(() => {
+        resultsBody.innerHTML = generate(type);
+      }, 600);
+    }
+
+    menuItems.forEach(item => {
+      item.addEventListener("click", () => runGenerate(item.dataset.type));
+    });
+
+    btnRegen.addEventListener("click", () => {
+      if (currentType) runGenerate(currentType);
+    });
+  </script>
+</body>
+</html>
